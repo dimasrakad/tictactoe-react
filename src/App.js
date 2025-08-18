@@ -55,6 +55,7 @@ function Board({ xIsNext, squares, onPlay }) {
 export default function Game() {
   const [history, setHistory] = useState([Array(9).fill(null)]);
   const [currentMove, setCurrentMove] = useState(0);
+  const [isAsc, setIsAsc] = useState(true);
   const xIsNext = currentMove % 2 === 0;
   const currentSquares = history[currentMove];
 
@@ -66,6 +67,10 @@ export default function Game() {
 
   function jumpTo(nextMove) {
     setCurrentMove(nextMove);
+  }
+
+  function changeSort() {
+    setIsAsc(!isAsc);
   }
 
   const moves = history.map((squares, move) => {
@@ -86,7 +91,9 @@ export default function Game() {
           (`You are at move #${move}`)}
       </li>
     )
-  })
+  });
+
+  const sortedMoves = isAsc ? moves : moves.slice().reverse();
 
   return (
     <div className='game'>
@@ -94,7 +101,8 @@ export default function Game() {
         <Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay} />
       </div>
       <div className='game-info'>
-        <ol>{moves}</ol>
+        <button onClick={() => changeSort()} style={{cursor: "pointer"}}>{isAsc ? "ASC⬆" : "DESC⬇"}</button>
+        <ol reversed={!isAsc}>{sortedMoves}</ol>
       </div>
     </div>
   );
