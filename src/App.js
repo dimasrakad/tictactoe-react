@@ -18,7 +18,7 @@ function Board({ xIsNext, squares, onPlay }) {
     const nextSquares = squares.slice();
 
     nextSquares[i] = xIsNext ? "❌" : "⭕";
-    onPlay(nextSquares);
+    onPlay(nextSquares, i);
   }
 
   const winner = calculateWinner(squares);
@@ -55,14 +55,17 @@ function Board({ xIsNext, squares, onPlay }) {
 }
 
 export default function Game() {
-  const [history, setHistory] = useState([Array(9).fill(null)]);
+  const [history, setHistory] = useState([{ squares: [Array(9).fill(null)], lastMove: null }]);
   const [currentMove, setCurrentMove] = useState(0);
   const [isAsc, setIsAsc] = useState(true);
   const xIsNext = currentMove % 2 === 0;
-  const currentSquares = history[currentMove];
+  const currentSquares = history[currentMove].squares;
 
-  function handlePlay(nextSquares) {
-    const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
+  function handlePlay(nextSquares, moveIndex) {
+    const nextHistory = [
+      ...history.slice(0, currentMove + 1),
+      { squares: nextSquares, lastMove: moveIndex }
+    ];
     setHistory(nextHistory);
     setCurrentMove(nextHistory.length - 1);
   }
@@ -75,11 +78,18 @@ export default function Game() {
     setIsAsc(!isAsc);
   }
 
-  const moves = history.map((squares, move) => {
+  const moves = history.map((step, move) => {
     let description;
+
     if (move > 0) {
+      const index = step.lastMove;
+      const row = Math.floor(index / 3) + 1;
+      const col = (index % 3) + 1;
+
       if (move !== currentMove) {
-        description = `Go to move #${move}`;
+        description = `Go to move #${move} (row: ${row}, col: ${col})`;
+      } else {
+        description = `You are at move #${move} (row: ${row}, col: ${col})`;
       }
     } else {
       description = "Go to game start";
@@ -87,10 +97,10 @@ export default function Game() {
 
     return (
       <li key={move}>
-        {description ?
+        {move !== currentMove ?
           (<button onClick={() => jumpTo(move)}>{description}</button>)
           :
-          (`You are at move #${move}`)}
+          (description)}
       </li>
     )
   });
