@@ -1,7 +1,12 @@
 import { useState } from 'react';
 
-function Square({ value, onSquareClick }) {
-  return <button className="square" onClick={onSquareClick}>{value}</button>
+function Square({ value, onSquareClick, highlight }) {
+  return <button
+    className={`square${highlight ? " highlight" : ""}`}
+    onClick={onSquareClick}
+  >
+    {value}
+  </button>
 }
 
 function Board({ xIsNext, squares, onPlay }) {
@@ -12,12 +17,7 @@ function Board({ xIsNext, squares, onPlay }) {
 
     const nextSquares = squares.slice();
 
-    if (xIsNext) {
-      nextSquares[i] = "❌";
-    } else {
-      nextSquares[i] = "⭕";
-    }
-
+    nextSquares[i] = xIsNext ? "❌" : "⭕";
     onPlay(nextSquares);
   }
 
@@ -25,7 +25,7 @@ function Board({ xIsNext, squares, onPlay }) {
   let status;
 
   if (winner) {
-    status = "Winner: " + winner;
+    status = "Winner: " + winner.player;
   } else {
     status = "Next player: " + (xIsNext ? "❌" : "⭕");
   }
@@ -37,12 +37,14 @@ function Board({ xIsNext, squares, onPlay }) {
         <div key={row} className="board-row">
           {[0, 1, 2].map((col) => {
             const index = row * 3 + col;
+            const isHighlight = winner && winner.line.includes(index)
 
             return (
               <Square
                 key={index}
                 value={squares[index]}
                 onSquareClick={() => handleClick(index)}
+                highlight={isHighlight}
               />
             );
           })}
@@ -101,7 +103,7 @@ export default function Game() {
         <Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay} />
       </div>
       <div className='game-info'>
-        <button onClick={() => changeSort()} style={{cursor: "pointer"}}>{isAsc ? "ASC⬆" : "DESC⬇"}</button>
+        <button onClick={() => changeSort()} style={{ cursor: "pointer" }}>{isAsc ? "ASC⬆" : "DESC⬇"}</button>
         <ol reversed={!isAsc}>{sortedMoves}</ol>
       </div>
     </div>
@@ -123,7 +125,7 @@ function calculateWinner(squares) {
   for (let i = 0; i < lines.length; i++) {
     const [a, b, c] = lines[i];
     if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-      return squares[a];
+      return { player: squares[a], line: [a, b, c] };
     }
   }
 
